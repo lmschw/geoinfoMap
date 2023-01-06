@@ -8,14 +8,15 @@ import View from 'ol/View.js';
 import {Icon, Style} from 'ol/style.js';
 import {Tile as TileLayer, Vector as VectorLayer} from 'ol/layer.js';
 import OSM from 'ol/source/OSM';
+import { getHeight } from 'ol/extent';
 
-const sachselnCoords = [917600, 5921700]
 
-const iconFeature = new Feature({
-  geometry: new Point(sachselnCoords),
-  name: 'Sachseln',
-});
+// --------------------CONSTANTS-----------------------------------
+// Coordinates
+const SACHSELN_COORDS = [917600, 5921700];
+const STGALLEN_COORDS = [917600, 5991700];
 
+// Styles
 const iconStyle = new Style({
   image: new Icon({
     anchor: [0.5, 46],
@@ -26,27 +27,33 @@ const iconStyle = new Style({
   }),
 });
 
-iconFeature.setStyle(iconStyle);
 
+// ------------------MAP-----------------------------------------
+// Tile Layer
+const tileLayer = new TileLayer({
+  source: new OSM()
+})
+
+// Vector Layer
 const vectorSource = new VectorSource({
-  features: [iconFeature],
+  features: getHardcodedFeatures(),
 });
 
 const vectorLayer = new VectorLayer({
   source: vectorSource,
 });
 
+// Map
 const map = new Map({
-  layers: [    new TileLayer({
-    source: new OSM()
-  }), vectorLayer],
+  layers: [tileLayer, vectorLayer],
   target: document.getElementById('map'),
   view: new View({
-    center: sachselnCoords,
+    center: SACHSELN_COORDS,
     zoom: 9,
   }),
 });
 
+// ------------------POPUP----------------------------------------
 const element = document.getElementById('popup');
 
 const popup = new Overlay({
@@ -89,3 +96,23 @@ map.on('pointermove', function (e) {
 });
 // Close the popup when the map is moved
 map.on('movestart', disposePopover);
+
+
+// -------------------------FUNCTIONS--------------------------------
+
+function getHardcodedFeatures(){
+  let features = [];
+  features.push(createFeature(SACHSELN_COORDS, 'Sachseln'));
+  features.push(createFeature(STGALLEN_COORDS, 'St. Gallen'));
+
+  return features;
+}
+
+function createFeature(coords, label){
+  const iconFeature = new Feature({
+    geometry: new Point(coords),
+    name: label,
+  });
+  iconFeature.setStyle(iconStyle);
+  return iconFeature;
+}
